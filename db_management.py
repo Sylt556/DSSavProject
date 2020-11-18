@@ -1,7 +1,7 @@
 import sqlite3
 
 
-# TODO: everything
+# TODO: test
 def table_exists(table_name, cur):
     cur.execute('''SELECT count(name) FROM sqlite_master WHERE TYPE='table' AND name='{}' '''.format(table_name))
     if cur.fetchone()[0] == 1:
@@ -54,7 +54,7 @@ def delete_hash(full_path, cur, conne):
 
 
 def update_hash(full_path, update_dict, cur, conne):
-    valid_keys = ['timestamp', 'hash_value']
+    valid_keys = ['timestamp', 'hash_val']
     for key in update_dict.keys():
         if key not in valid_keys:
             raise Exception('Invalid field name!')
@@ -64,16 +64,16 @@ def update_hash(full_path, update_dict, cur, conne):
     conne.commit()
 
 
+# TODO: Make sure this configuration works
 def create_connection(database_path):
     conn = sqlite3.connect(database_path)
     c = conn.cursor()
     c.execute('''
-        CREATE TABLE IF NOT EXISTS movies(
-            movie_id INTEGER,
-            name TEXT,
-            release_year INTEGER,
-            genre TEXT,
-            rating REAL
+        CREATE TABLE IF NOT EXISTS hashes(
+            full_path TEXT,
+            timestamp TIMESTAMP NOT NULL ON UPDATE CURRENT_TIMESTAMP,
+            hash_val TEXT,
+            PRIMARY KEY full_path
         )
     ''')
     return c, conn
