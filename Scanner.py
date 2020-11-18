@@ -33,7 +33,7 @@ def scan_cycle(my_path, my_ext, database):
     # we then connect to our database
     cur, con = db_management.create_connection(database)
     # and create a user report
-    report = pd.DataFrame(columns=['Full Path', 'Timestamp', 'Original Hash', 'New Hash'])
+    report = pd.DataFrame(columns=['Full Path', 'Extension', 'Timestamp', 'Original Hash', 'New Hash'])
     # main work loop
     for i in my_list:
         # for clarity, create a str variable of i
@@ -50,6 +50,7 @@ def scan_cycle(my_path, my_ext, database):
             # else we save the filename, timestamp and hash in the user report
             else:
                 new_row = {'Full Path': fullpath_var,
+                           'Extension': pathlib.Path(fullpath_var).suffix,
                            'Timestamp': datetime.datetime.now(),
                            'Original Hash': old_hash,
                            'New Hash': new_hash}
@@ -60,6 +61,7 @@ def scan_cycle(my_path, my_ext, database):
         else:
             db_management.insert_hash(str(i), time.time(), new_hash, cur, con)
     if not report.empty:
+        report.sort_values(by=['Extension', 'Timestamp'], inplace=True)
         # build a path where to save the report, same location as database
         # and format datetime to be filename friendly
         datetime_formatted = str(datetime.datetime.now())
