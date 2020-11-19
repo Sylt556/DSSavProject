@@ -43,8 +43,10 @@ def scan_cycle(my_path, my_ext, database):
         # if the hash exists in our db
         if db_management.entry_exists(fullpath_var):
             # if it is equal to the previous hash, we update the timestamp
-            old_hash = db_management.get_hash(fullpath_var)
-            if old_hash == new_hash:
+            # Strip the data received from the database
+            old_hash = str(db_management.get_hash(fullpath_var)).strip(",""("")""'"" ")
+            check = old_hash == new_hash
+            if check:
                 update_dict = {"timestamp": time.time()}
                 db_management.update_hash(fullpath_var, update_dict)
             # else we save the filename, timestamp and hash in the user report
@@ -61,7 +63,8 @@ def scan_cycle(my_path, my_ext, database):
         else:
             db_management.insert_hash(str(i), time.time(), new_hash)
     if not report.empty:
-        report.sort_values(by=['Extension', 'Timestamp'], inplace=True)
+        # sort the report by extension first, timestamps second
+        report = report.sort_values(by=['Extension', 'Timestamp'], ignore_index=True)
         # build a path where to save the report, same location as database
         # and format datetime to be filename friendly
         datetime_formatted = str(datetime.datetime.now())
@@ -69,5 +72,5 @@ def scan_cycle(my_path, my_ext, database):
         report_path = pathlib.Path(str(pathlib.Path(database).parent.absolute()) + sep + 'Report_' +
                                    datetime_formatted + '.csv')
         # save the report as csv
-        report.to_csv(report_path, sep='\t')
+        report.to_csv(report_path)
     return

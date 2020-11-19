@@ -37,11 +37,8 @@ def get_hashes():
 
 
 def get_hash(full_path_val):
-    cursor.execute('SELECT * FROM hashes WHERE full_path = ?', (full_path_val,))
-    data = []
-    for row in cursor.fetchall():
-        data.append(row)
-    return data
+    cursor.execute('''SELECT hash_val FROM hashes WHERE full_path = ? ''', (full_path_val,))
+    return cursor.fetchone()
 
 
 def delete_hash(full_path_val):
