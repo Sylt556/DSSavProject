@@ -55,7 +55,7 @@ def main():
             split_cmd = shlex.split(scan_cmd)
 
             if len(split_cmd) % 2 != 0:
-                print('Comando non corretto!')
+                print('Incorrect command!')
                 continue
 
             result_code = 0
@@ -63,32 +63,32 @@ def main():
                 result_code = proc_param(token, split_cmd[split_cmd.index(token) + 1])
             if result_code != 0:
                 if result_code == 11:
-                    print('Il path indicato non è una directory dalla quale è possibile eseguire la scansione.')
+                    print('The path indicated is not a directory from which you can scan.')
                 elif result_code == 31:
-                    print('Il periodo di scansione deve essere maggiore o uguale a 1.')
+                    print('The scan period must be greater than or equal to 1 minute.')
                 elif result_code == 32:
-                    print('Il periodo deve essere un intero.')
+                    print('The period must be an integer.')
                 elif result_code == 41:
-                    print('Il database indicato non è un database.')
+                    print('The indicated file is not a database.')
                 elif result_code == 42:
-                    print('Il file indicato non esiste.')
+                    print('The indicated database does not exist.')
                 else:
-                    print('Parametro non corretto.')
+                    print('Incorrect parameter.')
                 continue
             else:
                 print(f'\nDirectory: {dir_to_scan}')
-                print(f'Tipo(i) di file da scansionare: {type_ext}')
-                print(f'Periodo di scansione: {period_to_scan} min')
+                print(f'Type(s) of file to scan: {type_ext}')
                 print(f'Database: {db}')
 
                 if period_to_scan == -1:
-                    print('\nFile scansionati:')
+                    print('\nScanned files:')
                     Scanner.scan_cycle(dir_to_scan, type_ext, db)
                 else:
+                    print(f'Scan period: {period_to_scan} min')
                     n = 1
                     while True:
-                        print(f'\nScansione: {n}')
-                        print('File scansionati:')
+                        print(f'\nScan number: {n}')
+                        print('Scanned files:')
                         Scanner.scan_cycle(dir_to_scan, type_ext, db)
                         time.sleep(period_to_scan * 60)
                         n += 1
