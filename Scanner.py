@@ -31,7 +31,7 @@ def scan_cycle(my_path, my_ext, database):
     # The scan begins by creating a list of files in path of valid extension
     my_list = absolute_file_paths(my_path, my_ext)
     # we then connect to our database
-    cur, con = db_management.create_connection(database)
+    db_management.create_connection(database)
     # and create a user report
     report = pd.DataFrame(columns=['Full Path', 'Extension', 'Timestamp', 'Original Hash', 'New Hash'])
     # main work loop
@@ -41,12 +41,12 @@ def scan_cycle(my_path, my_ext, database):
         # we begin hashing our files one by one
         new_hash = md5(i)
         # if the hash exists in our db
-        if db_management.entry_exists(fullpath_var, cur):
+        if db_management.entry_exists(fullpath_var):
             # if it is equal to the previous hash, we update the timestamp
-            old_hash = db_management.get_hash(fullpath_var, cur)
+            old_hash = db_management.get_hash(fullpath_var)
             if old_hash == new_hash:
                 update_dict = {"timestamp": time.time()}
-                db_management.update_hash(fullpath_var, update_dict, cur, con)
+                db_management.update_hash(fullpath_var, update_dict)
             # else we save the filename, timestamp and hash in the user report
             else:
                 new_row = {'Full Path': fullpath_var,
@@ -55,11 +55,11 @@ def scan_cycle(my_path, my_ext, database):
                            'Original Hash': old_hash,
                            'New Hash': new_hash}
                 report = report.append(new_row, ignore_index=True)
-                update_dict = {"timestamp": time.time(), "hash_value": new_hash}
-                db_management.update_hash(fullpath_var, update_dict, cur, con)
+                update_dict = {"timestamp": time.time(), "hash_val": new_hash}
+                db_management.update_hash(fullpath_var, update_dict)
         # if the hash doesn't exist we add it to the db
         else:
-            db_management.insert_hash(str(i), time.time(), new_hash, cur, con)
+            db_management.insert_hash(str(i), time.time(), new_hash)
     if not report.empty:
         report.sort_values(by=['Extension', 'Timestamp'], inplace=True)
         # build a path where to save the report, same location as database
@@ -69,5 +69,5 @@ def scan_cycle(my_path, my_ext, database):
         report_path = pathlib.Path(str(pathlib.Path(database).parent.absolute()) + sep + 'Report_' +
                                    datetime_formatted + '.csv')
         # save the report as csv
-        pd.DataFrame.to_csv(report_path, sep='\t')
+        report.to_csv(report_path, sep='\t')
     return
