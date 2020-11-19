@@ -46,6 +46,7 @@ def scan_cycle(my_path, my_ext, database):
             # Strip the data received from the database
             old_hash = str(db_management.get_hash(fullpath_var)).strip(",""("")""'"" ")
             check = old_hash == new_hash
+            print("Working on: "+fullpath_var)
             if check:
                 update_dict = {"timestamp": time.time()}
                 db_management.update_hash(fullpath_var, update_dict)
