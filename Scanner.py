@@ -7,6 +7,7 @@ import pandas as pd
 import db_management
 import pathlib
 import re
+from online_hash_integration import virustotal_check
 
 
 # this function creates a list of files in our path with the sought after extensions
@@ -35,6 +36,7 @@ def scan_cycle(my_path, my_ext, database):
     # and create a user report
     report = pd.DataFrame(columns=['Full Path', 'Extension', 'Timestamp', 'Original Hash', 'New Hash'])
     # main work loop
+    dict_positives = {}
     for i in my_list:
         # for clarity, create a str variable of i
         fullpath_var = str(i)
@@ -57,13 +59,16 @@ def scan_cycle(my_path, my_ext, database):
                            'Timestamp': datetime.datetime.now(),
                            'Original Hash': old_hash,
                            'New Hash': new_hash}
+                dict_positives[fullpath_var] = new_hash
                 report = report.append(new_row, ignore_index=True)
                 update_dict = {"timestamp": time.time(), "hash_val": new_hash}
                 db_management.update_hash(fullpath_var, update_dict)
         # if the hash doesn't exist we add it to the db
         else:
             db_management.insert_hash(str(i), time.time(), new_hash)
+    # in case we did have different hashes, save the report and test them against virustotal
     if not report.empty:
+        virustotal_check(dict_positives)
         # sort the report by extension first, timestamps second
         report = report.sort_values(by=['Extension', 'Timestamp'], ignore_index=True)
         # build a path where to save the report, same location as database
