@@ -40,13 +40,13 @@ def scan_cycle(my_path, my_ext, database):
         fullpath_var = str(i)
         # we begin hashing our files one by one
         new_hash = md5(i)
+        print("Working on: " + fullpath_var)
         # if the hash exists in our db
         if db_management.entry_exists(fullpath_var):
             # if it is equal to the previous hash, we update the timestamp
             # Strip the data received from the database
             old_hash = str(db_management.get_hash(fullpath_var)).strip(",""("")""'"" ")
             check = old_hash == new_hash
-            print("Working on: "+fullpath_var)
             if check:
                 update_dict = {"timestamp": time.time()}
                 db_management.update_hash(fullpath_var, update_dict)
