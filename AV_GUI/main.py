@@ -26,8 +26,6 @@ def clear_report():
 def no_report():
     txt_prv_report.delete(1.0, tk.END)
     txt_prv_report.insert(tk.END, "No report was generated.")
-    txt_report_vtotal.delete(1.0, tk.END)
-    txt_report_vtotal.insert(tk.END, "No report was generated.")
 
 
 def open_report(path_report):
@@ -182,8 +180,8 @@ main_window.title("ReScan")  # Set main window title
 
 
 # Size
-main_window.minsize(900, 680)
-main_window.maxsize(900, 680)
+main_window.minsize(900, 630)
+main_window.maxsize(900, 630)
 
 
 # Configure rows and columns
@@ -272,19 +270,8 @@ lbl_prv_report = tk.Label(master=frm_prv_report, text="Report Preview: ",
                           font="Verdana 15 bold")
 lbl_prv_report.grid(row=0, sticky="nw")
 frm_prv_report.grid(sticky="nsew", padx=20, pady=5, row=3)
-txt_prv_report = tk.Text(master=frm_prv_report, relief=tk.RAISED, bd=1, height=5)
+txt_prv_report = tk.Text(master=frm_prv_report, relief=tk.RAISED, bd=1, height=10)
 txt_prv_report.grid(row=1, column=0, sticky="nsew")
-
-
-# Report Virus Total
-frm_report_vtotal = tk.Frame(master=main_window)
-frm_report_vtotal.columnconfigure(0, minsize=500, weight=1)
-lbl_report_vtotal = tk.Label(master=frm_report_vtotal, text="Report Virus Total: ",
-                          font="Verdana 15 bold")
-lbl_report_vtotal.grid(row=0, sticky="nw")
-frm_report_vtotal.grid(sticky="nsew", padx=20, pady=5, row=4)
-txt_report_vtotal = tk.Text(master=frm_report_vtotal, relief=tk.RAISED, bd=1, height=5)
-txt_report_vtotal.grid(row=1, column=0, sticky="nsew")
 
 
 # Console
