@@ -10,22 +10,29 @@ def virustotal(hash_value):
 
 
 def virustotal_check(dict_hashes):
+    return_values = []
     for key in dict_hashes:
         filename = key
         file_hash = dict_hashes[key]
-        error = False
-        try:
-            results = virustotal(file_hash)['results']
-            positive = results['positives']
-            total = results['total']
-            final_results = "{}/{}".format(positive, total)
-        except ValueError:
-            final_results = "Not_Found"
-            error = True
-        except KeyError:
-            final_results = "RATE_LIMITED"
-            error = True
-        if not error:
-            print("File {} of Hash {} was deemed a virus by {} antiviruses.".format(filename, file_hash, final_results))
-        else:
-            print("ERROR COMMUNICATING WITH API SERVER")
+        return_values.append(virustotal_check_single(filename, file_hash))
+    return return_values
+
+
+def virustotal_check_single(filename, md5):
+    file_hash = filename
+    error = False
+    try:
+        results = virustotal(md5)['results']
+        positive = results['positives']
+        total = results['total']
+        final_results = "{}/{}".format(positive, total)
+    except ValueError:
+        final_results = "Not_Found"
+        error = True
+    except KeyError:
+        final_results = "RATE_LIMITED"
+        error = True
+    if not error:
+        return "File {} of Hash {} was deemed a virus by {} antivirus.".format(filename, file_hash, final_results)
+    else:
+        return "ERROR COMMUNICATING WITH API SERVER"

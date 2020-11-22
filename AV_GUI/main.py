@@ -10,7 +10,7 @@ import db_management
 import pandas as pd
 import hashlib
 import datetime
-from online_hash_integration import virustotal_check
+from online_hash_integration import virustotal_check, virustotal_check_single
 
 period_to_scan = -1
 type_ext = '*'
@@ -61,7 +61,7 @@ def scan_cycle():
     # we then connect to our database
     db_management.create_connection(ent_database.get())
     # and create a user report
-    report = pd.DataFrame(columns=['Full Path', 'Extension', 'Timestamp', 'Original Hash', 'New Hash'])
+    report = pd.DataFrame(columns=['Full Path', 'Extension', 'Timestamp', 'Original Hash', 'New Hash', 'Verdict'])
     # main work loop
     dict_positives={}
     for i in my_list:
@@ -80,11 +80,13 @@ def scan_cycle():
                 db_management.update_hash(fullpath_var, update_dict)
             # else we save the filename, timestamp and hash in the user report
             else:
+                virustotal_verdict = virustotal_check_single(new_hash)
                 new_row = {'Full Path': fullpath_var,
                            'Extension': pathlib.Path(fullpath_var).suffix,
                            'Timestamp': datetime.datetime.now(),
                            'Original Hash': old_hash,
-                           'New Hash': new_hash}
+                           'New Hash': new_hash,
+                           'Verdict': virustotal_verdict}
                 dict_positives[fullpath_var] = new_hash
                 report = report.append(new_row, ignore_index=True)
                 update_dict = {"timestamp": time.time(), "hash_val": new_hash}
@@ -94,9 +96,9 @@ def scan_cycle():
             db_management.insert_hash(str(i), time.time(), new_hash)
     # in case we did have different hashes, save the report and test them against virustotal
     if not report.empty:
-        report_vtotal = virustotal_check(dict_positives)
-        txt_report_vtotal.delete(0.0, tk.END)
-        txt_report_vtotal.insert(tk.END, report_vtotal)
+        # report_vtotal = virustotal_check(dict_positives)
+        # txt_report_vtotal.delete(0.0, tk.END)
+        # txt_report_vtotal.insert(tk.END, report_vtotal)
         # sort the report by extension first, timestamps second
         report = report.sort_values(by=['Extension', 'Timestamp'], ignore_index=True)
         # build a path where to save the report, same location as database
