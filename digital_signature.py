@@ -1,9 +1,9 @@
 from hashlib import blake2b
 import os
+import json
 
 
-
-
+ 
 def hash_blake2b(fname):
     if not os.path.isfile(fname):
         raise Exception('DB does not exist')
@@ -14,6 +14,36 @@ def hash_blake2b(fname):
             hash_blake2b.update(chunk)
     return hash_blake2b.hexdigest()
 
+
+
+
+
+#assume the json has already been created
+def check_db(fname):
+    data = json.load(open("db_hash.json"))
+    hash_old_value= data[fname]
+    hash_new_value= hash_blake2b(fname)
+    print("confronto " + hash_old_value + " con " + hash_new_value)
+    if hash_old_value == hash_new_value:
+        return True
+    else:
+        return False
+    
+
+def add_db_to_json(path):
+    #Check if the file exists, if it doesn't exist I create it
+    if not os.path.isfile("db_hash.json"):
+        new={path:hash_blake2b(path)}
+        with open("db_hash.json", "w") as outfile:
+            json.dump(data, outfile)
+        
+    data = json.load(open("db_hash.json"))
+    new={path:hash_blake2b(path)}
+    data.update(new) 
+    with open("db_hash.json", "w") as outfile:
+        json.dump(data, outfile)
+     
+   
 
 
 
