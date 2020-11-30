@@ -47,5 +47,4 @@ def add_db_to_json(path):
    
 
 
-print(path_json)
-print(check_db("db2"))
+
