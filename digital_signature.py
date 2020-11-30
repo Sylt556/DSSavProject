@@ -45,6 +45,12 @@ def add_db_to_json(path):
         json.dump(data, outfile)
      
    
-
+def check_db_exist(path):
+    data = json.load(open(path_json))
+    try:
+         value= data[path]
+    except KeyError:
+        return False
+    return True
 
 
