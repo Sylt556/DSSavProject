@@ -8,6 +8,7 @@ import db_management
 import pathlib
 import re
 from online_hash_integration import virustotal_check
+import digital_signature
 
 
 # this function creates a list of files in our path with the sought after extensions
@@ -32,6 +33,16 @@ def scan_cycle(my_path, my_ext, database):
     # The scan begins by creating a list of files in path of valid extension
     my_list = absolute_file_paths(my_path, my_ext)
     # we then connect to our database
+    
+ """
+    #controllo se db è stato salvato nel json per il controllo della firme del db
+    if digital_signature.check_db_exist(database):
+        #controllo che la firma corrisponda
+        if not digital_signature.check_db(fname):
+            #firma non corrisponde, cosa facciamo?
+            
+  """" 
+    
     db_management.create_connection(database)
     # and create a user report
     report = pd.DataFrame(columns=['Full Path', 'Extension', 'Timestamp', 'Original Hash', 'New Hash'])
