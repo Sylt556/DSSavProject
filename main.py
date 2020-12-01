@@ -79,7 +79,18 @@ def main():
                 print(f'\nDirectory: {dir_to_scan}')
                 print(f'Type(s) of file to scan: {type_ext}')
                 print(f'Database: {db}')
-
+               
+                #controllo se db è presente nel json per il controllo della firme del db
+                if digital_signature.check_db_exist(database):
+                    #controllo che la firma corrisponda
+                    if not digital_signature.check_db(database):
+                        #firma non corrisponde
+                        print('the digital signature of the db does not match')
+                        continue
+                else:
+                    #db non ancora aggiunto nel json,lo aggiungo
+                    digital_signature. add_db_to_json(database)
+                        
                 if period_to_scan == -1:
                     print('\nScanned files:')
                     Scanner.scan_cycle(dir_to_scan, type_ext, db)
