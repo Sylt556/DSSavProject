@@ -10,6 +10,8 @@ import db_management
 import pandas as pd
 import hashlib
 import datetime
+
+import digital_signature
 from online_hash_integration import virustotal_check, virustotal_check_single
 
 period_to_scan = -1
@@ -57,7 +59,7 @@ def scan_cycle():
     # The scan begins by creating a list of files in path of valid extension
     my_list = absolute_file_paths()
     # we then connect to our database
-    db_management.create_connection(ent_database.get())
+    # db_management.create_connection(ent_database.get())
     # and create a user report
     report = pd.DataFrame(columns=['Full Path', 'Extension', 'Timestamp', 'Original Hash', 'New Hash', 'Verdict'])
     # main work loop
@@ -140,7 +142,7 @@ def select_db():
 def check_scan():
     global type_ext, period_to_scan, fmt, stop
     clear_report()
-    btn_scan["stat"] = "disabled"
+    btn_scan["state"] = "disabled"
     btn_scan.update_idletasks()
     type_ext = ent_ext.get()
     if type_ext == "":
@@ -156,7 +158,7 @@ def check_scan():
         lbl_console["fg"] = "red"
         lbl_console["text"] = "Console > The period must be an integer."
         btn_scan["state"] = "normal"
-        return 
+        return
     if period_to_scan != -1 and (period_to_scan < 1 or period_to_scan > 1400):
         ent_period["fg"] = "red"
         lbl_console["fg"] = "red"
@@ -167,12 +169,25 @@ def check_scan():
         ent_period["fg"] = "black"
         lbl_console["fg"] = "black"
         if period_to_scan == -1:
+            db_management.create_connection(db)
+            # controllo se db è presente nel json per il controllo della firme del db
+            if digital_signature.check_db_exist(db):
+                # controllo che la firma corrisponda
+                if not digital_signature.check_db(db):
+                    # firma non corrisponde
+                    lbl_console["text"] = f"Console > The digital signature of the db does not match"
+                    return
+            else:
+                # db non ancora aggiunto nel json,lo aggiungo
+                digital_signature.add_db_to_json(db)
             lbl_console["text"] = f"Console > ReScan -d {ent_directory.get()}\
  -b {ent_database.get()} -t {type_ext}"
             scan_cycle()
             lbl_console["fg"] = "green"
             lbl_console["text"] = lbl_console["text"] + " > Scan Completed!"
             btn_scan["state"] = "normal"
+            # Aggiorno la firma
+            digital_signature.mod_dt_json(db)
         
 
 main_window = tk.Tk()  # Create main window
