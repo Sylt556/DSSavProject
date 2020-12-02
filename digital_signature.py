@@ -54,4 +54,11 @@ def check_db_exist(path):
         return False
     return True
     
+    
+ def mod_dt_json(path):
+    data = json.load(open(path_json))
+    data[path]= hash_blake2b(path)
+    with open(path_json, "w") as outfile:
+        json.dump(data, outfile)
+    
 
