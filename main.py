@@ -83,6 +83,7 @@ def main():
                 print(f'Type(s) of file to scan: {type_ext}')
                 print(f'Database: {db}')
                 db_management.create_connection(db)
+                digital_signature.define_path_json(db)
                 #controllo se db è presente nel json per il controllo della firme del db
                 if digital_signature.check_db_exist(db):
                     #controllo che la firma corrisponda

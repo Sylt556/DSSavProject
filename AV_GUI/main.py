@@ -168,14 +168,17 @@ def check_scan():
     else:
         ent_period["fg"] = "black"
         lbl_console["fg"] = "black"
+        db = ent_database.get()
         if period_to_scan == -1:
             db_management.create_connection(db)
+            digital_signature.define_path_json(db)
             # controllo se db è presente nel json per il controllo della firme del db
             if digital_signature.check_db_exist(db):
                 # controllo che la firma corrisponda
                 if not digital_signature.check_db(db):
                     # firma non corrisponde
                     lbl_console["text"] = f"Console > The digital signature of the db does not match"
+                    btn_scan["state"] = "normal"
                     return
             else:
                 # db non ancora aggiunto nel json,lo aggiungo

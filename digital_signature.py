@@ -1,14 +1,17 @@
+import pathlib
 from hashlib import blake2b
 import os
 import json
-path_json="db_hash.json"
 
+
+def define_path_json(path):
+    global path_json
+    path_json = pathlib.Path(str(pathlib.Path(path).parent.absolute()) + os.sep + 'DB_Signature.json')
 
  
 def hash_blake2b(fname):
     if not os.path.isfile(fname):
         raise Exception('DB does not exist')
-    
     hash_blake2b = blake2b(key=b'chiaveSegreta', digest_size=64)
     with open(fname, "rb") as f:
         for chunk in iter(lambda: f.read(4096), b""):
