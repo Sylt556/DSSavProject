@@ -35,7 +35,7 @@ def add_db_to_json(path):
     if not os.path.isfile(path_json):
         new={path:hash_blake2b(path)}
         with open(path_json, "w") as outfile:
-            json.dump(new, outfile)
+            json.dump(data, outfile)
         
     data = json.load(open(path_json))
     new={path:hash_blake2b(path)}
@@ -53,12 +53,14 @@ def check_db_exist(path):
     except KeyError:
         return False
     return True
-    
-    
- def mod_dt_json(path):
+
+def mod_dt_json(path):
     data = json.load(open(path_json))
     data[path]= hash_blake2b(path)
     with open(path_json, "w") as outfile:
         json.dump(data, outfile)
     
 
+
+print(path_json)
+print(mod_dt_json("db2"))
