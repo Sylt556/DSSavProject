@@ -35,7 +35,7 @@ def add_db_to_json(path):
     if not os.path.isfile(path_json):
         new={path:hash_blake2b(path)}
         with open(path_json, "w") as outfile:
-            json.dump(data, outfile)
+            json.dump(new, outfile)
         
     data = json.load(open(path_json))
     new={path:hash_blake2b(path)}
