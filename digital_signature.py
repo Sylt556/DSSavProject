@@ -24,7 +24,6 @@ def check_db(fname):
     data = json.load(open(path_json))
     hash_old_value= data[fname]
     hash_new_value= hash_blake2b(fname)
-    print("confronto " + hash_old_value + " con " + hash_new_value)
     if hash_old_value == hash_new_value:
         return True
     else:
@@ -43,14 +42,16 @@ def add_db_to_json(path):
     data.update(new) 
     with open(path_json, "w") as outfile:
         json.dump(data, outfile)
-     
-   
+
+
 def check_db_exist(path):
+    if not os.path.isfile(path_json):
+        return False
     data = json.load(open(path_json))
     try:
          value= data[path]
     except KeyError:
         return False
     return True
-
+    
 
