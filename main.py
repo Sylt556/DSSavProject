@@ -2,6 +2,8 @@ import shlex
 import os.path
 import Scanner
 import time
+
+import db_management
 import digital_signature
 
 # Global variables
@@ -80,7 +82,7 @@ def main():
                 print(f'\nDirectory: {dir_to_scan}')
                 print(f'Type(s) of file to scan: {type_ext}')
                 print(f'Database: {db}')
-               
+                db_management.create_connection(db)
                 #controllo se db è presente nel json per il controllo della firme del db
                 if digital_signature.check_db_exist(db):
                     #controllo che la firma corrisponda

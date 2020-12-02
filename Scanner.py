@@ -33,7 +33,7 @@ def scan_cycle(my_path, my_ext, database):
     # The scan begins by creating a list of files in path of valid extension
     my_list = absolute_file_paths(my_path, my_ext)
     # we then connect to our database
-    db_management.create_connection(database)
+    # db_management.create_connection(database)
     # and create a user report
     report = pd.DataFrame(columns=['Full Path', 'Extension', 'Timestamp', 'Original Hash', 'New Hash'])
     # main work loop
@@ -64,6 +64,7 @@ def scan_cycle(my_path, my_ext, database):
                 report = report.append(new_row, ignore_index=True)
                 update_dict = {"timestamp": time.time(), "hash_val": new_hash}
                 db_management.update_hash(fullpath_var, update_dict)
+                print("ATTENTION: File at "+fullpath_var+" was different from last scan cycle!")
         # if the hash doesn't exist we add it to the db
         else:
             db_management.insert_hash(str(i), time.time(), new_hash)
@@ -80,4 +81,5 @@ def scan_cycle(my_path, my_ext, database):
                                    datetime_formatted + '.csv')
         # save the report as csv
         report.to_csv(report_path)
+        print("A report for modified files has been generated at "+report_path)
     return
