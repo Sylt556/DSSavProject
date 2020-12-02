@@ -81,5 +81,5 @@ def scan_cycle(my_path, my_ext, database):
                                    datetime_formatted + '.csv')
         # save the report as csv
         report.to_csv(report_path)
-        print("A report for modified files has been generated at "+report_path)
+        print("A report for modified files has been generated at "+str(report_path))
     return
