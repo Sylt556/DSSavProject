@@ -60,7 +60,3 @@ def mod_dt_json(path):
     with open(path_json, "w") as outfile:
         json.dump(data, outfile)
     
-
-
-print(path_json)
-print(mod_dt_json("db2"))
