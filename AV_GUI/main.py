@@ -177,6 +177,7 @@ def check_scan():
                 # controllo che la firma corrisponda
                 if not digital_signature.check_db(db):
                     # firma non corrisponde
+                    lbl_console["fg"] = "red"
                     lbl_console["text"] = f"Console > The digital signature of the db does not match"
                     btn_scan["state"] = "normal"
                     return
