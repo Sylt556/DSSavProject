@@ -104,6 +104,9 @@ def main():
                         Scanner.scan_cycle(dir_to_scan, type_ext, db)
                         time.sleep(period_to_scan * 60)
                         n += 1
+                #Aggiorno la firma        
+                digital_signature.mod_dt_json(db)
+                
         except KeyboardInterrupt:
             continue
 
