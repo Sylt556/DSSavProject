@@ -11,7 +11,7 @@ def define_path_json(path):
  
 def hash_blake2b(fname):
     if not os.path.isfile(fname):
-        raise Exception('DB does not exist')
+        return "NO_DATA"
     hash_blake2b = blake2b(key=b'chiaveSegreta', digest_size=64)
     with open(fname, "rb") as f:
         for chunk in iter(lambda: f.read(4096), b""):
@@ -36,13 +36,9 @@ def add_db_to_json(path):
         new = {path: hash_blake2b(path)}
         with open(path_json, "w") as outfile:
             json.dump(new, outfile)
-    if not os.path.isfile(path):
-        data = '0000000000000000000000000000000000000'
-        new = {path: hash_blake2b(data)}
-    else:
-        data = json.load(open(path_json))
-        new = {path: hash_blake2b(path)}
-    data.update(new) 
+    data = json.load(open(path_json))
+    new = {path: hash_blake2b(path)}
+    data.update(new)
     with open(path_json, "w") as outfile:
         json.dump(data, outfile)
 
