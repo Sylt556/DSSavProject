@@ -7,8 +7,6 @@ import pandas as pd
 import db_management
 import pathlib
 import re
-from online_hash_integration import virustotal_check
-import digital_signature
 
 
 # this function creates a list of files in our path with the sought after extensions
@@ -32,9 +30,7 @@ def md5(fname):
 def scan_cycle(my_path, my_ext, database):
     # The scan begins by creating a list of files in path of valid extension
     my_list = absolute_file_paths(my_path, my_ext)
-    # we then connect to our database
-    # db_management.create_connection(database)
-    # and create a user report
+    # we then create a user report
     report = pd.DataFrame(columns=['Full Path', 'Extension', 'Timestamp', 'Original Hash', 'New Hash'])
     # main work loop
     dict_positives = {}
@@ -68,9 +64,7 @@ def scan_cycle(my_path, my_ext, database):
         # if the hash doesn't exist we add it to the db
         else:
             db_management.insert_hash(str(i), time.time(), new_hash)
-    # in case we did have different hashes, save the report and test them against virustotal
     if not report.empty:
-        virustotal_check(dict_positives)
         # sort the report by extension first, timestamps second
         report = report.sort_values(by=['Extension', 'Timestamp'], ignore_index=True)
         # build a path where to save the report, same location as database
@@ -82,4 +76,7 @@ def scan_cycle(my_path, my_ext, database):
         # save the report as csv
         report.to_csv(report_path)
         print("A report for modified files has been generated at "+str(report_path))
-    return
+        # we then return a control code and the report path
+        return True, report_path
+    else:
+        return False, '-'

@@ -2,17 +2,10 @@ import tkinter as tk  # Module for GUI
 from tkinter.filedialog import askopenfilename
 from tkinter.filedialog import askdirectory
 import re
-from os.path import abspath, join
-import pathlib
-from os import walk, sep
-import time
+import Scanner
 import db_management
-import pandas as pd
-import hashlib
-import datetime
-
 import digital_signature
-from online_hash_integration import virustotal_check, virustotal_check_single
+
 
 period_to_scan = -1
 type_ext = '*'
@@ -37,78 +30,9 @@ def open_report(path_report):
         txt_prv_report.insert(tk.END, text)
 
 
-def absolute_file_paths():
-    global type_ext, n_files
-    for dirpath, _, filenames in walk(ent_directory.get()):
-        for f in filenames:
-            # match via regex the members of our search with the extension
-            if re.match(type_ext, pathlib.Path(f).suffix):
-                yield abspath(join(dirpath, f))
-
-
-# this function evaluates the MD5 hash of a given file
-def md5(fname):
-    hash_md5 = hashlib.md5()
-    with open(fname, "rb") as f:
-        for chunk in iter(lambda: f.read(4096), b""):
-            hash_md5.update(chunk)
-    return hash_md5.hexdigest()
-
-
-def scan_cycle():
-    # The scan begins by creating a list of files in path of valid extension
-    my_list = absolute_file_paths()
-    # we then connect to our database
-    # db_management.create_connection(ent_database.get())
-    # and create a user report
-    report = pd.DataFrame(columns=['Full Path', 'Extension', 'Timestamp', 'Original Hash', 'New Hash', 'Verdict'])
-    # main work loop
-    dict_positives={}
-    for i in my_list:
-        # for clarity, create a str variable of i
-        fullpath_var = str(i)
-        # we begin hashing our files one by one
-        new_hash = md5(i)
-        # if the hash exists in our db
-        if db_management.entry_exists(fullpath_var):
-            # if it is equal to the previous hash, we update the timestamp
-            # Strip the data received from the database
-            old_hash = str(db_management.get_hash(fullpath_var)).strip(",""("")""'"" ")
-            check = old_hash == new_hash
-            if check:
-                update_dict = {"timestamp": time.time()}
-                db_management.update_hash(fullpath_var, update_dict)
-            # else we save the filename, timestamp and hash in the user report
-            else:
-                virustotal_verdict = virustotal_check_single(new_hash)
-                new_row = {'Full Path': fullpath_var,
-                           'Extension': pathlib.Path(fullpath_var).suffix,
-                           'Timestamp': datetime.datetime.now(),
-                           'Original Hash': old_hash,
-                           'New Hash': new_hash,
-                           'Verdict': virustotal_verdict}
-                dict_positives[fullpath_var] = new_hash
-                report = report.append(new_row, ignore_index=True)
-                update_dict = {"timestamp": time.time(), "hash_val": new_hash}
-                db_management.update_hash(fullpath_var, update_dict)
-        # if the hash doesn't exist we add it to the db
-        else:
-            db_management.insert_hash(str(i), time.time(), new_hash)
-    # in case we did have different hashes, save the report and test them against virustotal
-    if not report.empty:
-        # report_vtotal = virustotal_check(dict_positives)
-        # txt_report_vtotal.delete(0.0, tk.END)
-        # txt_report_vtotal.insert(tk.END, report_vtotal)
-        # sort the report by extension first, timestamps second
-        report = report.sort_values(by=['Extension', 'Timestamp'], ignore_index=True)
-        # build a path where to save the report, same location as database
-        # and format datetime to be filename friendly
-        datetime_formatted = str(datetime.datetime.now())
-        datetime_formatted = datetime_formatted.replace(":", "_")
-        report_path = pathlib.Path(str(pathlib.Path(ent_database.get()).parent.absolute()) + sep + 'Report_' +
-                                   datetime_formatted + '.csv')
-        # save the report as csv
-        report.to_csv(report_path)
+def scan_integration(path, extension, database):
+    control_value, report_path = Scanner.scan_cycle(path, extension, database)
+    if control_value:
         open_report(report_path)
         lbl_path_report["text"] = report_path
     else:
@@ -116,7 +40,7 @@ def scan_cycle():
         lbl_path_report["text"] = '-'
     return
 
-                
+
 def select_dir():
     dirpath = askdirectory()
     if not dirpath:
@@ -186,7 +110,7 @@ def check_scan():
                 digital_signature.add_db_to_json(db)
             lbl_console["text"] = f"Console > ReScan -d {ent_directory.get()}\
  -b {ent_database.get()} -t {type_ext}"
-            scan_cycle()
+            scan_integration(ent_directory.get(), type_ext, ent_database.get())
             lbl_console["fg"] = "green"
             lbl_console["text"] = lbl_console["text"] + " > Scan Completed!"
             btn_scan["state"] = "normal"
