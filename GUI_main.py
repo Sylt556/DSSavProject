@@ -45,6 +45,7 @@ def scan_integration(path, extension, database):
     return
 
 
+# this function starts our scanner and reporter threads.
 def periodic_scan_integration(period, path, extension, database):
     scan_thread = Thread(target=thread_manager.scan_task_launcher,
                          args=(q, control_q, period, path, extension, database))
@@ -123,8 +124,8 @@ def check_scan():
     if period_to_scan != -1 and (period_to_scan < 1 or period_to_scan > 1400):
         ent_period["fg"] = "red"
         lbl_console["fg"] = "red"
-        lbl_console["text"] = "Console > The scan period must be greater than or equal to 1 minut.\
- To avoid the periodic scan it must be -1."
+        lbl_console["text"] = "Console > The scan period must be greater than or equal to 1 seconds.\
+ To issue a single scan use -1 as argument."
         btn_scan["state"] = "normal"
     else:
         ent_period["fg"] = "black"

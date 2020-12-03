@@ -56,9 +56,15 @@ def main():
 
             scan_cmd = input('\n\nrescan > ')
             split_cmd = shlex.split(scan_cmd)
-
+            if scan_cmd == 'exit':
+                exit()
             if len(split_cmd) % 2 != 0:
-                print('Incorrect command!')
+                print('Incorrect command!\n'
+                      'Usage:\n'
+                      '-d   "PATH"      :specify folder to scan\n'
+                      '-t   "PATH"      :specify database path\n'
+                      '-p   INT         :specify scan interval length in seconds\n'
+                      'exit             :quit script')
                 continue
 
             result_code = 0
@@ -82,7 +88,6 @@ def main():
                 print(f'\nDirectory: {dir_to_scan}')
                 print(f'Type(s) of file to scan: {type_ext}')
                 print(f'Database: {db}')
-                db_management.create_connection(db)
                 digital_signature.define_path_json(db)
                 #controllo se db è presente nel json per il controllo della firme del db
                 if digital_signature.check_db_exist(db):
@@ -99,18 +104,19 @@ def main():
                     print('\nScanned files:')
                     Scanner.scan_cycle(dir_to_scan, type_ext, db)
                 else:
-                    print(f'Scan period: {period_to_scan} min')
+                    print(f'Scan period: {period_to_scan} seconds')
                     n = 1
                     while True:
                         print(f'\nScan number: {n}')
                         print('Scanned files:')
                         Scanner.scan_cycle(dir_to_scan, type_ext, db)
-                        time.sleep(period_to_scan * 60)
+                        time.sleep(period_to_scan)
                         n += 1
                 #Aggiorno la firma        
                 digital_signature.mod_dt_json(db)
                 
         except KeyboardInterrupt:
+            digital_signature.mod_dt_json(db)
             continue
 
 
