@@ -1,16 +1,22 @@
+import os
 import tkinter as tk  # Module for GUI
+from queue import Queue
 from tkinter.filedialog import askopenfilename
 from tkinter.filedialog import askdirectory
 import re
 import Scanner
 import db_management
 import digital_signature
+from threading import Thread
+import thread_manager
 
 
 period_to_scan = -1
 type_ext = '*'
 db = './default_db.db'
 dir_to_scan = './'
+q = Queue()
+control_q = Queue()
 
 
 def clear_report():
@@ -41,6 +47,25 @@ def scan_integration(path, extension, database):
     return
 
 
+def periodic_scan_integration(period, path, extension, database):
+    scan_thread = Thread(target=thread_manager.scan_task_launcher,
+                         args=(q, control_q, period, path, extension, database))
+    reporter_thread = Thread(target=thread_manager.scan_reporter,
+                             args=(q, control_q))
+    scan_thread.start()
+    reporter_thread.start()
+    # TODO: Add a while loop to print the results of reporter to text box
+    btn_stop["state"] = "normal"
+
+
+def stop_periodic_scan():
+    btn_stop["state"] = "disabled"
+    q.put(thread_manager.ret_sentinel())
+    btn_scan["state"] = "normal"
+    lbl_console["fg"] = "red"
+    lbl_console["text"] = "Console > Interrupted a periodic scan."
+
+
 def select_dir():
     dirpath = askdirectory()
     if not dirpath:
@@ -63,8 +88,21 @@ def select_db():
     ent_database["state"] = "disabled"
 
 
+def pick_scan_mode(scan_period, scan_path, extension, database):
+    if scan_period == -1:
+        scan_integration(scan_path, extension, database)
+        lbl_console["fg"] = "green"
+        lbl_console["text"] = lbl_console["text"] + " > Scan Completed!"
+        btn_scan["state"] = "normal"
+    else:
+        periodic_scan_integration(scan_period, scan_path, extension, database)
+        lbl_console["fg"] = "green"
+        lbl_console["text"] = "Console > Started a periodic scan with period " + str(period_to_scan)
+
+
 def check_scan():
-    global type_ext, period_to_scan, fmt, stop
+    global type_ext, period_to_scan, fmt, stop, no_signature
+    no_signature = True
     clear_report()
     btn_scan["state"] = "disabled"
     btn_scan.update_idletasks()
@@ -94,29 +132,28 @@ def check_scan():
         lbl_console["fg"] = "black"
         db = ent_database.get()
         if period_to_scan == -1:
-            db_management.create_connection(db)
             digital_signature.define_path_json(db)
-            # controllo se db è presente nel json per il controllo della firme del db
             if digital_signature.check_db_exist(db):
-                # controllo che la firma corrisponda
+                # check the signature
                 if not digital_signature.check_db(db):
-                    # firma non corrisponde
+                    # stop the scan if the signature doesn't match
                     lbl_console["fg"] = "red"
                     lbl_console["text"] = f"Console > The digital signature of the db does not match"
                     btn_scan["state"] = "normal"
                     return
             else:
-                # db non ancora aggiunto nel json,lo aggiungo
+                # database file not present in the signature list, adding it
                 digital_signature.add_db_to_json(db)
             lbl_console["text"] = f"Console > ReScan -d {ent_directory.get()}\
  -b {ent_database.get()} -t {type_ext}"
-            scan_integration(ent_directory.get(), type_ext, ent_database.get())
-            lbl_console["fg"] = "green"
-            lbl_console["text"] = lbl_console["text"] + " > Scan Completed!"
-            btn_scan["state"] = "normal"
-            # Aggiorno la firma
-            digital_signature.mod_dt_json(db)
-        
+            # this function will determine the type of scan (single or continuous) based on the period
+            # it will then launch the appropriate function
+            pick_scan_mode(period_to_scan, ent_directory.get(), type_ext, ent_database.get())
+            # In the case of a single scan we can sign the database instantly
+            # while in case of a continuous scan this step runs during the thread_manager.scan_task_launcher cleanup
+            if period_to_scan == -1:
+                digital_signature.mod_dt_json(db)
+
 
 main_window = tk.Tk()  # Create main window
 main_window.title("ReScan")  # Set main window title
@@ -177,7 +214,7 @@ lbl_ext.grid(row=0, column=0, stick="ne", padx=5)
 ent_ext.grid(row=0, column=1, sticky="nw", padx=5)
 lbl_period.grid(row=0, column=2, stick="nw", padx=5)
 ent_period.grid(row=0, column=3, sticky="nw", padx=5)
-ent_period["state"] = "disabled"
+ent_period["state"] = "normal"
 frm_input_2.grid(row=2, columnspan=3, pady=5)
 # Scan button
 btn_scan = tk.Button(master=frm_input, text="Start Scan!", height=2,
@@ -185,7 +222,7 @@ btn_scan = tk.Button(master=frm_input, text="Start Scan!", height=2,
 btn_scan.grid(row=3, column=0, columnspan=2, padx=10, pady=20, sticky="nsw") 
 # Stop button
 btn_stop = tk.Button(master=frm_input, text="Stop!", height=2,
-                     width=29, font="Verdana 15 bold")
+                     width=29, font="Verdana 15 bold", command=stop_periodic_scan)
 btn_stop.grid(row=3, column=1, columnspan=2, padx=10, pady=20, sticky="nse")
 frm_input.grid(row=1, column=0, sticky="n")
 btn_stop["state"] = "disabled"

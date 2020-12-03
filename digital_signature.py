@@ -22,8 +22,8 @@ def hash_blake2b(fname):
 # assume the json has already been created
 def check_db(fname):
     data = json.load(open(path_json))
-    hash_old_value= data[fname]
-    hash_new_value= hash_blake2b(fname)
+    hash_old_value = data[fname]
+    hash_new_value = hash_blake2b(fname)
     if hash_old_value == hash_new_value:
         return True
     else:
@@ -31,14 +31,17 @@ def check_db(fname):
     
 
 def add_db_to_json(path):
-    # Check if the file exists, if it doesn't exist I create it
+    # Check if the file exists, if it doesn't exist we create it
     if not os.path.isfile(path_json):
-        new={path:hash_blake2b(path)}
+        new = {path: hash_blake2b(path)}
         with open(path_json, "w") as outfile:
             json.dump(new, outfile)
-        
-    data = json.load(open(path_json))
-    new={path:hash_blake2b(path)}
+    if not os.path.isfile(path):
+        data = '0000000000000000000000000000000000000'
+        new = {path: hash_blake2b(data)}
+    else:
+        data = json.load(open(path_json))
+        new = {path: hash_blake2b(path)}
     data.update(new) 
     with open(path_json, "w") as outfile:
         json.dump(data, outfile)
@@ -57,6 +60,6 @@ def check_db_exist(path):
 
 def mod_dt_json(path):
     data = json.load(open(path_json))
-    data[path]= hash_blake2b(path)
+    data[path] = hash_blake2b(path)
     with open(path_json, "w") as outfile:
         json.dump(data, outfile)

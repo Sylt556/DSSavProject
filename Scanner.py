@@ -30,6 +30,7 @@ def md5(fname):
 def scan_cycle(my_path, my_ext, database):
     # The scan begins by creating a list of files in path of valid extension
     my_list = absolute_file_paths(my_path, my_ext)
+    db_management.create_connection(database)
     # we then create a user report
     report = pd.DataFrame(columns=['Full Path', 'Extension', 'Timestamp', 'Original Hash', 'New Hash'])
     # main work loop
