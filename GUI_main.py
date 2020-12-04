@@ -1,3 +1,4 @@
+import time
 import tkinter as tk  # Module for GUI
 from queue import Queue
 from tkinter.filedialog import askopenfilename
@@ -6,7 +7,6 @@ import re
 import Scanner
 import digital_signature
 from threading import Thread
-import thread_manager
 
 
 period_to_scan = -1
@@ -15,8 +15,44 @@ db = './default_db.db'
 dir_to_scan = './'
 q = Queue()
 control_q = Queue()
+_sentinel = object()
 
 
+# ~~~~~~ MODULES FOR MULTITHREADING ~~~~~~ #
+def ret_sentinel():
+    return _sentinel
+
+
+def scan_task_launcher(out_q, stop_q, sleep_length, path, ext, db):
+    n = 1
+    while True:
+        txt_prv_report.insert(tk.END, "Scan #" + str(n) + "\n")
+        n += 1
+        return_of_scanner = Scanner.scan_cycle(path, ext, db)
+        if len(return_of_scanner) == 2:
+            if return_of_scanner[1] != '-':
+                open_report(return_of_scanner[1])
+        out_q.put(return_of_scanner)
+        if stop_q.get() is _sentinel:
+            break
+        time.sleep(sleep_length)
+    # this is where we sign the database, after the very last change has been made
+    digital_signature.mod_dt_json(db)
+    lbl_console["fg"] = "green"
+    lbl_console["text"] = "Recurring Scan Stopped."
+
+
+def scan_reporter(out_q, stop_q):
+    while True:
+        data = out_q.get()
+        if data is _sentinel:
+            stop_q.put(_sentinel)
+            break
+        else:
+            stop_q.put(True)
+
+
+# ~~~~~~ MODULES FOR WRITING REPORTS ON SCREEN ~~~~~~ #
 def clear_report():
     txt_prv_report.delete(1.0, tk.END)
     lbl_path_report["text"] = "-"
@@ -34,6 +70,7 @@ def open_report(path_report):
         txt_prv_report.insert(tk.END, text)
 
 
+# ~~~~~~ MODULES FOR SCANNING ~~~~~~ #
 def scan_integration(path, extension, database):
     control_value, report_path = Scanner.scan_cycle(path, extension, database)
     if control_value:
@@ -47,24 +84,24 @@ def scan_integration(path, extension, database):
 
 # this function starts our scanner and reporter threads.
 def periodic_scan_integration(period, path, extension, database):
-    scan_thread = Thread(target=thread_manager.scan_task_launcher,
+    scan_thread = Thread(target=scan_task_launcher,
                          args=(q, control_q, period, path, extension, database))
-    reporter_thread = Thread(target=thread_manager.scan_reporter,
+    reporter_thread = Thread(target=scan_reporter,
                              args=(q, control_q))
     scan_thread.start()
     reporter_thread.start()
-    # TODO: Add a while loop to print the results of reporter to text box
     btn_stop["state"] = "normal"
 
 
 def stop_periodic_scan():
     btn_stop["state"] = "disabled"
-    q.put(thread_manager.ret_sentinel())
+    q.put(_sentinel)
     btn_scan["state"] = "normal"
     lbl_console["fg"] = "red"
-    lbl_console["text"] = "Console > Interrupted a periodic scan."
+    lbl_console["text"] = "Console > Interrupting a periodic scan, please wait..."
 
 
+# ~~~~~~ MODULES FOR USER INPUT ~~~~~~ #
 def select_dir():
     dirpath = askdirectory()
     if not dirpath:
@@ -100,6 +137,7 @@ def pick_scan_mode(scan_period, scan_path, extension, database):
         lbl_console["text"] = "Console > Started a periodic scan with period " + str(period_to_scan)
 
 
+# ~~~~~~ MODULE FOR A SCAN CYCLE ~~~~~~ #
 def check_scan():
     global type_ext, period_to_scan, fmt, stop, no_signature
     no_signature = True
