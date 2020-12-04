@@ -1,7 +1,6 @@
 import sqlite3
 
 
-# TODO: test
 def table_exists(table_name):
     cursor.execute('''SELECT count(name) FROM sqlite_master WHERE TYPE='table' AND name='{}' '''.format(table_name))
     if cursor.fetchone()[0] == 1:
@@ -13,7 +12,7 @@ def entry_exists(full_path_val):
     cursor.execute('''SELECT full_path
                    FROM hashes
                    WHERE full_path=?''',
-                (full_path_val,))
+                   (full_path_val,))
     result = cursor.fetchone()
     return result
 

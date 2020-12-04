@@ -2,8 +2,6 @@ import shlex
 import os.path
 import Scanner
 import time
-
-import db_management
 import digital_signature
 
 # Global variables
@@ -45,8 +43,20 @@ def proc_param(param_name, param_value):
     return 0
 
 
+def help_manual():
+    print('\nUsage:\n'
+          '-d   "PATH"      :specify folder to scan\n'
+          '-t   REGEX       :specify file extensions to scan for\n'
+          '-b   "PATH"      :specify database to use for this scan\n'
+          '-p   INT         :specify scan interval length in seconds\n'
+          'exit             :quit script\n'
+          'In order to interrupt a recurring scan, use SIGINT.')
+
+
 def main():
+    help_manual()
     while True:
+        running_continuous_scan_flag = False
         try:
             global dir_to_scan, type_ext, db, period_to_scan
             dir_to_scan = './'
@@ -59,12 +69,8 @@ def main():
             if scan_cmd == 'exit':
                 exit()
             if len(split_cmd) % 2 != 0:
-                print('Incorrect command!\n'
-                      'Usage:\n'
-                      '-d   "PATH"      :specify folder to scan\n'
-                      '-t   "PATH"      :specify database path\n'
-                      '-p   INT         :specify scan interval length in seconds\n'
-                      'exit             :quit script')
+                print("Incorrect Command!")
+                help_manual()
                 continue
 
             result_code = 0
@@ -89,15 +95,15 @@ def main():
                 print(f'Type(s) of file to scan: {type_ext}')
                 print(f'Database: {db}')
                 digital_signature.define_path_json(db)
-                #controllo se db è presente nel json per il controllo della firme del db
+                # check if the database is present within the json collecting database signatures
                 if digital_signature.check_db_exist(db):
-                    #controllo che la firma corrisponda
+                    # check if the recorded signature corresponds
                     if not digital_signature.check_db(db):
-                        #firma non corrisponde
+                        # if it doesn't
                         print('the digital signature of the db does not match')
                         continue
                 else:
-                    #db non ancora aggiunto nel json,lo aggiungo
+                    # new database not yet present within the json
                     digital_signature. add_db_to_json(db)
                         
                 if period_to_scan == -1:
@@ -106,18 +112,25 @@ def main():
                 else:
                     print(f'Scan period: {period_to_scan} seconds')
                     n = 1
+                    running_continuous_scan_flag = True
                     while True:
                         print(f'\nScan number: {n}')
                         print('Scanned files:')
                         Scanner.scan_cycle(dir_to_scan, type_ext, db)
                         time.sleep(period_to_scan)
                         n += 1
-                #Aggiorno la firma        
+                # update signature
                 digital_signature.mod_dt_json(db)
                 
         except KeyboardInterrupt:
-            digital_signature.mod_dt_json(db)
-            continue
+            # capture keyboard interrupts if and only if we are running a scan
+            if running_continuous_scan_flag:
+                # update signature in case we quit a continuous scan cycle
+                # noinspection PyUnboundLocalVariable
+                digital_signature.mod_dt_json(db)
+                continue
+            else:
+                exit()
 
 
 main()
