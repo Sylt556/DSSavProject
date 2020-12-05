@@ -1,5 +1,6 @@
 import datetime
 import hashlib
+import os
 from os import walk, sep
 from os.path import abspath, join
 import time
@@ -72,7 +73,13 @@ def scan_cycle(my_path, my_ext, database):
         # and format datetime to be filename friendly
         datetime_formatted = str(datetime.datetime.now())
         datetime_formatted = datetime_formatted.replace(":", "_")
-        report_path = pathlib.Path(str(pathlib.Path(database).parent.absolute()) + sep + 'Report_' +
+        report_dir_path = str(os.getcwd()) + sep + 'Reports'
+        if not os.path.isdir(report_dir_path):
+            try:
+                os.mkdir(report_dir_path)
+            except OSError:
+                exit(1)
+        report_path = pathlib.Path(str(os.getcwd()) + sep + 'Reports' + sep + 'Report_' +
                                    datetime_formatted + '.csv')
         # save the report as csv
         report.to_csv(report_path)

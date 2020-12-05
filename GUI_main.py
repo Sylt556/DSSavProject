@@ -1,3 +1,4 @@
+import os
 import time
 import tkinter as tk  # Module for GUI
 from queue import Queue
@@ -26,12 +27,16 @@ def ret_sentinel():
 def scan_task_launcher(out_q, stop_q, sleep_length, path, ext, db):
     n = 1
     while True:
-        txt_prv_report.insert(tk.END, "Scan #" + str(n) + "\n")
+        txt_prv_report.insert(tk.END, "Scan #" + str(n) + ": ")
         n += 1
         return_of_scanner = Scanner.scan_cycle(path, ext, db)
         if len(return_of_scanner) == 2:
-            if return_of_scanner[1] != '-':
-                open_report(return_of_scanner[1])
+            if return_of_scanner[0]:
+                txt_prv_report.insert(tk.END, return_of_scanner[1])
+                open_report(return_of_scanner[1] + "\n")
+            else:
+                no_report()
+        txt_prv_report.insert(tk.END, "\n")
         out_q.put(return_of_scanner)
         time.sleep(sleep_length)
         if stop_q.get() is _sentinel:
@@ -59,12 +64,10 @@ def clear_report():
 
 
 def no_report():
-    txt_prv_report.delete(1.0, tk.END)
     txt_prv_report.insert(tk.END, "No report was generated.")
 
 
 def open_report(path_report):
-    txt_prv_report.delete(1.0, tk.END)
     with open(path_report, "r") as input_file:
         text = input_file.read()
         txt_prv_report.insert(tk.END, text)
@@ -74,6 +77,7 @@ def open_report(path_report):
 def scan_integration(path, extension, database):
     control_value, report_path = Scanner.scan_cycle(path, extension, database)
     if control_value:
+        txt_prv_report.insert(tk.END, "Report generated at: " + str(report_path) + "\n")
         open_report(report_path)
         lbl_path_report["text"] = report_path
     else:
