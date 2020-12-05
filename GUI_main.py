@@ -32,8 +32,8 @@ def scan_task_launcher(out_q, stop_q, sleep_length, path, ext, db):
         return_of_scanner = Scanner.scan_cycle(path, ext, db)
         if len(return_of_scanner) == 2:
             if return_of_scanner[0]:
-                txt_prv_report.insert(tk.END, return_of_scanner[1])
-                open_report(return_of_scanner[1] + "\n")
+                txt_prv_report.insert(tk.END, str(return_of_scanner[1]) + "\n")
+                open_report(return_of_scanner[1])
             else:
                 no_report()
         txt_prv_report.insert(tk.END, "\n")
@@ -60,7 +60,6 @@ def scan_reporter(out_q, stop_q):
 # ~~~~~~ MODULES FOR WRITING REPORTS ON SCREEN ~~~~~~ #
 def clear_report():
     txt_prv_report.delete(1.0, tk.END)
-    lbl_path_report["text"] = "-"
 
 
 def no_report():
@@ -79,10 +78,8 @@ def scan_integration(path, extension, database):
     if control_value:
         txt_prv_report.insert(tk.END, "Report generated at: " + str(report_path) + "\n")
         open_report(report_path)
-        lbl_path_report["text"] = report_path
     else:
         no_report()
-        lbl_path_report["text"] = '-'
     return
 
 
@@ -269,28 +266,13 @@ frm_input.grid(row=1, column=0, sticky="n")
 btn_stop["state"] = "disabled"
 
 
-# Report Path and scan number
-frm_path_report = tk.Frame(master=main_window)
-lbl_scan_number = tk.Label(master=frm_path_report, text="Scan number: ",
-                           font="Verdana 15 bold")
-lbl_number = tk.Label(master=frm_path_report, text="-")
-lbl_report = tk.Label(master=frm_path_report, text="Report Path: ",
-                           font="Verdana 15 bold")
-lbl_path_report = tk.Label(master=frm_path_report, text="-")
-lbl_scan_number.grid(row=0, column=0, sticky="ns")
-lbl_number.grid(row=1, column=0, sticky="ns")
-lbl_report.grid(row=2, column=0, sticky="ns")
-lbl_path_report.grid(row=3, column=0, sticky="ns")
-frm_path_report.grid(sticky="n", padx=20, pady=20, row=2)
-
-
 # Preview Report
 frm_prv_report = tk.Frame(master=main_window)
 frm_prv_report.columnconfigure(0, minsize=500, weight=1)
 lbl_prv_report = tk.Label(master=frm_prv_report, text="Report Preview: ",
                           font="Verdana 15 bold")
 lbl_prv_report.grid(row=0, sticky="nw")
-frm_prv_report.grid(sticky="nsew", padx=20, pady=5, row=3)
+frm_prv_report.grid(sticky="nsew", padx=20, pady=5, row=2)
 txt_prv_report = tk.Text(master=frm_prv_report, relief=tk.RAISED, bd=1, height=10)
 txt_prv_report.grid(row=1, column=0, sticky="nsew")
 
