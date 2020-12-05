@@ -1,4 +1,3 @@
-import os
 import time
 import tkinter as tk  # Module for GUI
 from queue import Queue
@@ -198,8 +197,8 @@ main_window.title("ReScan")  # Set main window title
 
 
 # Size
-main_window.minsize(900, 630)
-main_window.maxsize(900, 630)
+main_window.minsize(900, 530)
+main_window.maxsize(900, 530)
 
 
 # Configure rows and columns
