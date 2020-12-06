@@ -197,8 +197,8 @@ main_window.title("ReScan")  # Set main window title
 
 
 # Size
-main_window.minsize(900, 530)
-main_window.maxsize(900, 530)
+main_window.geometry("900x480")
+main_window.resizable(0, 0)
 
 
 # Configure rows and columns
